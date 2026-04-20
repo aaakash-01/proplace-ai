@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Global Styles ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0a0a0f;
+  color: #e2e8f0;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00f5ff, #7b2ff7);
+  border-radius: 3px;
+}
+
+/* ===== Glassmorphism Utilities ===== */
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(0, 245, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 245, 255, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .glass-input {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    color: #e2e8f0;
+    transition: all 0.3s ease;
+  }
+
+  .glass-input:focus {
+    outline: none;
+    border-color: #00f5ff;
+    box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.1);
+  }
+
+  .glow-btn {
+    background: linear-gradient(135deg, #00f5ff, #7b2ff7);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .glow-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #00f5ff, #7b2ff7);
+    filter: blur(20px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .glow-btn:hover::before {
+    opacity: 0.6;
+  }
+
+  .glow-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.3), 0 0 60px rgba(123, 47, 247, 0.2);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #00f5ff 0%, #7b2ff7 50%, #ff2dcd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-border {
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0, 245, 255, 0.3), rgba(123, 47, 247, 0.3));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+/* ===== Animated Background Mesh ===== */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(0, 245, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(123, 47, 247, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 60% at 50% 80%, rgba(255, 45, 205, 0.04) 0%, transparent 50%),
+    #0a0a0f;
+}
+
+/* ===== Page Transitions ===== */
+.page-enter {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Floating Particles ===== */
+@keyframes particle-float {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  25% { transform: translate(30px, -50px) scale(1.1); opacity: 0.6; }
+  50% { transform: translate(-20px, -100px) scale(0.9); opacity: 0.4; }
+  75% { transform: translate(40px, -50px) scale(1.05); opacity: 0.5; }
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particle-float linear infinite;
+}
