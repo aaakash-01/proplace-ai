@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { 
   Target, CheckCircle2, AlertTriangle, XCircle, TrendingUp, 
-  FileText, Lightbulb, ArrowRight 
+  FileText, Lightbulb, ArrowRight
 } from 'lucide-react'
 import PageWrapper, { GlassCard, SectionTitle, GlowButton } from '../components/UI'
 import { Link } from 'react-router-dom'

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Briefcase, MapPin, Clock, DollarSign, Star, ExternalLink, 
@@ -6,44 +6,6 @@ import {
 } from 'lucide-react'
 import PageWrapper, { GlassCard, SectionTitle } from '../components/UI'
 
-const jobs = [
-  {
-    id: 1, title: 'Senior Frontend Engineer', company: 'TechCorp Inc.', location: 'San Francisco, CA',
-    salary: '$150K - $200K', type: 'Full-time', match: 95, posted: '2 days ago',
-    skills: ['React', 'TypeScript', 'Node.js', 'GraphQL'],
-    logo: '🏢'
-  },
-  {
-    id: 2, title: 'Machine Learning Engineer', company: 'AI Solutions Ltd.', location: 'New York, NY',
-    salary: '$140K - $190K', type: 'Full-time', match: 88, posted: '3 days ago',
-    skills: ['Python', 'TensorFlow', 'PyTorch', 'SQL'],
-    logo: '🤖'
-  },
-  {
-    id: 3, title: 'Full Stack Developer', company: 'StartupXYZ', location: 'Remote',
-    salary: '$120K - $160K', type: 'Full-time', match: 82, posted: '1 day ago',
-    skills: ['React', 'Python', 'PostgreSQL', 'AWS'],
-    logo: '🚀'
-  },
-  {
-    id: 4, title: 'Data Scientist', company: 'DataDriven Co.', location: 'Austin, TX',
-    salary: '$130K - $175K', type: 'Full-time', match: 76, posted: '5 days ago',
-    skills: ['Python', 'Machine Learning', 'SQL', 'Tableau'],
-    logo: '📊'
-  },
-  {
-    id: 5, title: 'DevOps Engineer', company: 'CloudFirst', location: 'Seattle, WA',
-    salary: '$135K - $180K', type: 'Full-time', match: 71, posted: '1 week ago',
-    skills: ['Docker', 'Kubernetes', 'AWS', 'Terraform'],
-    logo: '☁️'
-  },
-  {
-    id: 6, title: 'Backend Engineer', company: 'FinTech Corp', location: 'Chicago, IL',
-    salary: '$125K - $170K', type: 'Full-time', match: 68, posted: '4 days ago',
-    skills: ['Python', 'FastAPI', 'PostgreSQL', 'Redis'],
-    logo: '💰'
-  },
-]
 
 function MatchBadge({ match }) {
   const color = match >= 90 ? 'from-emerald-500 to-teal-500 text-emerald-100' 
@@ -58,8 +20,41 @@ function MatchBadge({ match }) {
 }
 
 export default function JobRecommendations() {
+  const [jobs, setJobs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [savedJobs, setSavedJobs] = useState([])
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await fetch('/api/jobs/recommendations')
+        const data = await response.json()
+        
+        if (!response.ok) throw new Error('Failed to fetch jobs')
+        
+        // Map backend fields to frontend expectations
+        const mappedJobs = data.jobs.map(job => ({
+          ...job,
+          salary: job.salary_range,
+          type: job.job_type,
+          match: job.match_percentage,
+          skills: job.required_skills,
+          posted: 'Just now', // Placeholder since backend doesn't provide
+          logo: '🏢' // Placeholder
+        }))
+        
+        setJobs(mappedJobs)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchJobs()
+  }, [])
 
   const filteredJobs = jobs.filter(job =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,7 +92,16 @@ export default function JobRecommendations() {
       </div>
 
       {/* Job Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <div className="w-8 h-8 border-4 border-white/10 border-t-neon-blue rounded-full animate-spin" />
+        </div>
+      ) : error ? (
+        <div className="text-red-400 text-center p-4 bg-red-500/10 rounded-lg border border-red-500/20">
+          {error}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filteredJobs.map((job, i) => (
           <motion.div
             key={job.id}
@@ -162,7 +166,13 @@ export default function JobRecommendations() {
             </GlassCard>
           </motion.div>
         ))}
+        {filteredJobs.length === 0 && !loading && !error && (
+          <div className="col-span-1 lg:col-span-2 text-center py-10 text-gray-400">
+            No jobs found matching your search.
+          </div>
+        )}
       </div>
+      )}
     </PageWrapper>
   )
 }

@@ -2,20 +2,24 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, resume, jobs, skills, interview, career
 
-# ✅ ADD THESE IMPORTS
-from database import engine , Base
-from models import  User, Resume, Job
+from contextlib import asynccontextmanager
+
+from database import engine, Base
+from models import User, Resume, Job, Application, JobMatch
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # ✅ CREATE TABLES ON STARTUP
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Shutdown logic if any
 
 app = FastAPI(
     title="ProPlace AI API",
     description="Intelligent Career & Job Matching Assistant",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
-
-# ✅ CREATE TABLES ON STARTUP
-@app.on_event("startup")
-def startup():
-    Base.metadata.create_all(bind=engine)
 
 # CORS
 app.add_middleware(

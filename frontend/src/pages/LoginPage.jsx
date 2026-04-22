@@ -9,17 +9,41 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      localStorage.setItem('token', 'demo-jwt-token')
-      setLoading(false)
+    setError(null)
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.indexOf('application/json') !== -1) {
+        data = await response.json();
+      } else {
+        data = { detail: 'An unexpected server error occurred' };
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.detail || 'Login failed');
+      }
+      
+      localStorage.setItem('token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
       navigate('/dashboard')
-    }, 1500)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -41,6 +65,12 @@ export default function LoginPage() {
 
           <h1 className="text-2xl font-bold text-white text-center mb-2">Welcome Back</h1>
           <p className="text-gray-400 text-center text-sm mb-8">Sign in to continue your career journey</p>
+
+          {error && (
+            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
