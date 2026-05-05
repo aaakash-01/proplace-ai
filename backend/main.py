@@ -5,7 +5,7 @@ from routers import auth, resume, jobs, skills, interview, career
 from contextlib import asynccontextmanager
 
 from database import engine, Base
-from models import User, Resume, Job, Application, JobMatch
+import models  # noqa: F401 — ensures all SQLAlchemy models are registered before create_all()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
