@@ -36,9 +36,15 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Login failed');
       }
       
+      const signedInUser = {
+        resumeUploaded: true,
+        needsResumeUpload: false,
+        ...data.user,
+      }
+
       localStorage.setItem('token', data.access_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      navigate('/dashboard')
+      localStorage.setItem('user', JSON.stringify(signedInUser))
+      navigate('/profile')
     } catch (err) {
       setError(err.message)
     } finally {

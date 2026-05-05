@@ -14,6 +14,7 @@ AI-powered career platform that analyzes resumes, provides ATS scores, recommend
 | 📊 Skill Gap Analysis | Radar charts comparing your skills vs role requirements |
 | 🤖 AI Mock Interview | Interactive chat-based interview simulation |
 | 🗺️ Career Roadmap | Visual career path with milestones and trending skills |
+| 🛡️ Recruiter/Admin Console | Post jobs, review applications, manage accounts, and moderate listings |
 | 🔐 JWT Authentication | Secure signup/login with token-based auth |
 
 ## 🛠️ Tech Stack
@@ -94,6 +95,11 @@ python -m uvicorn main:app --reload --port 8000
 | POST | `/api/resume/upload` | Upload & analyze resume |
 | GET | `/api/resume/ats-score` | Get ATS score |
 | GET | `/api/jobs/recommendations` | Get job matches |
+| GET | `/api/jobs/management-dashboard` | Recruiter/admin dashboard data |
+| POST | `/api/jobs/listings` | Post recruiter job listing |
+| PATCH | `/api/jobs/listings/{job_id}/moderation` | Moderate job listing |
+| PATCH | `/api/jobs/preferences` | Set matching preferences |
+| PATCH | `/api/jobs/users/{user_id}/status` | Manage account status |
 | GET | `/api/skills/gap-analysis` | Skill gap data |
 | POST | `/api/interview/chat` | Interview chat |
 | GET | `/api/career/path` | Career roadmap |

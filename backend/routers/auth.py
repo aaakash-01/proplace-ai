@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import os
 from dotenv import load_dotenv
 from database import get_db
-from models.models import User
+from models.models import User, UserRole
 
 load_dotenv()
 
@@ -30,6 +30,7 @@ class SignupRequest(BaseModel):
     name: str
     email: str
     password: str
+    role: str = UserRole.job_seeker.value
 
 
 class LoginRequest(BaseModel):
@@ -47,6 +48,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
+    role: str
 
 
 # Helpers
@@ -96,11 +98,18 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
     
+    if request.role not in {role.value for role in UserRole}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid role"
+        )
+
     # Create user
     user = User(
         name=request.name,
         email=request.email,
-        hashed_password=get_password_hash(request.password)
+        hashed_password=get_password_hash(request.password),
+        role=UserRole(request.role)
     )
     db.add(user)
     db.commit()
@@ -111,7 +120,7 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": {"id": user.id, "name": user.name, "email": user.email}
+        "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role.value}
     }
 
 
@@ -128,10 +137,15 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": {"id": user.id, "name": user.name, "email": user.email}
+        "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role.value}
     }
 
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
-    return {"id": current_user.id, "name": current_user.name, "email": current_user.email}
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "role": current_user.role.value,
+    }

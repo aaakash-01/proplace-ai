@@ -41,8 +41,11 @@ export default function JobRecommendations() {
           type: job.job_type,
           match: job.match_percentage,
           skills: job.required_skills,
+          matchedSkills: job.matched_skills || [],
+          missingSkills: job.missing_skills || [],
+          reason: job.recommendation_reason,
           posted: 'Just now', // Placeholder since backend doesn't provide
-          logo: '🏢' // Placeholder
+          logo: 'AI'
         }))
         
         setJobs(mappedJobs)
@@ -147,6 +150,23 @@ export default function JobRecommendations() {
                   </span>
                 ))}
               </div>
+
+              {job.reason && (
+                <p className="text-xs text-neon-blue mb-3">{job.reason}</p>
+              )}
+
+              {job.matchedSkills.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-2">Matched resume skills</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {job.matchedSkills.map(skill => (
+                      <span key={skill} className="px-2 py-1 rounded-md bg-emerald-400/10 text-xs text-emerald-300 border border-emerald-400/20">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <button className="flex-1 glow-btn py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-lg">

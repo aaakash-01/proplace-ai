@@ -4,12 +4,29 @@ import { Upload, FileText, CheckCircle2, AlertCircle, X, File, ArrowRight } from
 import PageWrapper, { GlassCard, GlowButton, SectionTitle } from '../components/UI'
 import { useNavigate } from 'react-router-dom'
 
+function markResumeUploaded() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || 'null')
+    if (user) {
+      localStorage.setItem('user', JSON.stringify({
+        ...user,
+        resumeUploaded: true,
+        needsResumeUpload: false,
+      }))
+    }
+  } catch {
+    localStorage.removeItem('user')
+  }
+}
+
 export default function ResumeUpload() {
   const [dragActive, setDragActive] = useState(false)
   const [file, setFile] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [uploaded, setUploaded] = useState(false)
+  const [analysis, setAnalysis] = useState(null)
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
   const handleDrag = useCallback((e) => {
@@ -34,21 +51,37 @@ export default function ResumeUpload() {
     }
   }
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!file) return
     setUploading(true)
     setProgress(0)
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setUploading(false)
-          setUploaded(true)
-          return 100
-        }
-        return prev + Math.random() * 15 + 5
+    setError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      setProgress(25)
+      const response = await fetch('/api/resume/upload', {
+        method: 'POST',
+        body: formData,
       })
-    }, 200)
+      setProgress(70)
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.detail || 'Resume analysis failed')
+      }
+
+      setAnalysis(data)
+      setProgress(100)
+      setUploaded(true)
+      markResumeUploaded()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -59,6 +92,12 @@ export default function ResumeUpload() {
       />
 
       <div className="max-w-2xl mx-auto">
+        {error && (
+          <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-sm text-center">
+            {error}
+          </div>
+        )}
+
         {/* Upload Zone */}
         <GlassCard hover={false} className="relative overflow-hidden">
           {!uploaded ? (
@@ -178,13 +217,34 @@ export default function ResumeUpload() {
                 <CheckCircle2 className="w-10 h-10 text-emerald-400" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Resume Analyzed Successfully!</h3>
-              <p className="text-gray-400 mb-6">We found 24 skills and 5 years of experience.</p>
+              <p className="text-gray-400 mb-6">
+                We found {analysis?.skills?.length || 0} skills, {analysis?.keywords?.length || 0} keywords,
+                and {analysis?.experience_years || 0} years of experience.
+              </p>
+              <div className="mb-6 text-left">
+                <p className="text-sm font-semibold text-white mb-3">Extracted skills</p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {(analysis?.skills || []).slice(0, 12).map(skill => (
+                    <span key={skill} className="px-2.5 py-1 rounded-md bg-emerald-400/10 text-xs text-emerald-300 border border-emerald-400/20">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-sm font-semibold text-white mb-3">Resume keywords</p>
+                <div className="flex flex-wrap gap-2">
+                  {(analysis?.keywords || []).slice(0, 12).map(keyword => (
+                    <span key={keyword} className="px-2.5 py-1 rounded-md bg-white/5 text-xs text-gray-300 border border-white/5">
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <GlowButton onClick={() => navigate('/ats-score')} className="flex items-center justify-center gap-2">
-                  View ATS Score <ArrowRight className="w-4 h-4" />
+                <GlowButton onClick={() => navigate('/jobs')} className="flex items-center justify-center gap-2">
+                  View Matched Jobs <ArrowRight className="w-4 h-4" />
                 </GlowButton>
                 <button
-                  onClick={() => { setFile(null); setUploaded(false); setProgress(0) }}
+                  onClick={() => { setFile(null); setUploaded(false); setProgress(0); setAnalysis(null) }}
                   className="px-6 py-3 rounded-xl glass border border-white/10 text-white text-sm font-medium hover:border-white/20 transition-all"
                 >
                   Upload Another

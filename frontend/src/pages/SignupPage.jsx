@@ -8,6 +8,7 @@ export default function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [role, setRole] = useState('job_seeker')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -22,7 +23,7 @@ export default function SignupPage() {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password, role })
       })
       
       let data;
@@ -37,9 +38,15 @@ export default function SignupPage() {
         throw new Error(data.detail || 'Signup failed');
       }
       
+      const signedUpUser = {
+        ...data.user,
+        needsResumeUpload: data.user.role === 'job_seeker',
+        resumeUploaded: data.user.role !== 'job_seeker',
+      }
+
       localStorage.setItem('token', data.access_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      navigate('/dashboard')
+      localStorage.setItem('user', JSON.stringify(signedUpUser))
+      navigate(signedUpUser.resumeUploaded ? '/profile' : '/resume')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -101,6 +108,19 @@ export default function SignupPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Account Type</label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="glass-input w-full px-4 py-3 text-sm"
+              >
+                <option value="job_seeker">Job Seeker</option>
+                <option value="recruiter">Recruiter</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
 
             <div>
